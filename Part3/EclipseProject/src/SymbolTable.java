@@ -41,5 +41,7 @@ public class SymbolTable {
 			System.out.println(pair.getValue().toString());
 			it.remove();
 		}
+		// Print blank line at end of symbol table.
+		System.out.println();
 	}
 }

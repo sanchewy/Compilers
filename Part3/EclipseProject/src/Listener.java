@@ -379,8 +379,7 @@ public class Listener extends LittleBaseListener {
 	 * </p>
 	 */
 	@Override
-	public void enterFunc_declarations(LittleParser.Func_declarationsContext ctx) {
-	}
+	public void enterFunc_declarations(LittleParser.Func_declarationsContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
@@ -414,6 +413,27 @@ public class Listener extends LittleBaseListener {
 	@Override
 	public void exitFunc_decl(LittleParser.Func_declContext ctx) {
 	}
+	
+	@Override public void enterFunc_name(LittleParser.Func_nameContext ctx) { 
+//		for(int i = 0; i < ctx.getChildCount(); i++) {
+//			System.out.println("Child " + i + " " + ctx.getChild(i).getText());
+//		}
+		// Add a new symbol table to the hash of hashes
+		this.st.put(ctx.getChild(0).getText(), new SymbolTable(ctx.getChild(0).getText()));
+		// Push the new scope name onto the scope tracker stack
+		this.scopeStack.push(ctx.getChild(0).getText());
+	}
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitFunc_name(LittleParser.Func_nameContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 
 	/**
 	 * {@inheritDoc}
