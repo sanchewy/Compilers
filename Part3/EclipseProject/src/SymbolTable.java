@@ -38,7 +38,7 @@ public class SymbolTable {
 		Iterator it = st.entrySet().iterator();
 		while (it.hasNext()) {
 			Map.Entry pair = (Map.Entry) it.next();
-			System.out.println("name " + pair.getKey() + "" + pair.getValue().toString());
+			System.out.println(pair.getValue().toString());
 			it.remove();
 		}
 	}

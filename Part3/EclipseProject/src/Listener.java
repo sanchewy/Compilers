@@ -5,14 +5,19 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import java.util.LinkedHashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Stack;
 
 public class Listener extends LittleBaseListener {
 
 	// A hash map of the form <Key=scope name, value=symbol table> used to contain
 	// all the sub-symbol tables
 	LinkedHashMap<String, SymbolTable> st = new LinkedHashMap<String, SymbolTable>();
+	// A stack to maintain the current scope name (which can be used to lookup the
+	// corresponding SymbolTable through 'st')
+	Stack<String> scopeStack = new Stack<String>();
 
-	// Constructor creates initial symbol table for global scope
+	// Empty constructor, initialization of hashmap 'st' starts with 'enterProgram'
+	// GLOBAL scope.
 	public Listener() {
 
 	}
@@ -28,6 +33,7 @@ public class Listener extends LittleBaseListener {
 	public void enterProgram(LittleParser.ProgramContext ctx) {
 		// Insert GLOBAL symbol table
 		this.st.put("GLOBAL", new SymbolTable("GLOBAL"));
+		this.scopeStack.push("GLOBAL");
 	}
 
 	/**
@@ -39,6 +45,7 @@ public class Listener extends LittleBaseListener {
 	 */
 	@Override
 	public void exitProgram(LittleParser.ProgramContext ctx) {
+		this.scopeStack.pop();
 	}
 
 	/**
@@ -50,6 +57,7 @@ public class Listener extends LittleBaseListener {
 	 */
 	@Override
 	public void enterId(LittleParser.IdContext ctx) {
+
 	}
 
 	/**
@@ -138,6 +146,20 @@ public class Listener extends LittleBaseListener {
 	 */
 	@Override
 	public void enterString_decl(LittleParser.String_declContext ctx) {
+		// Insert a new Symbol into the current scope's symbol table
+		if (ctx.getChildCount() != 4) { // Full declaration, should be the only possibility
+			boolean exists = this.st.get(this.scopeStack.peek()).lookup(ctx.getChild(1).getText()); // Child(1) = string
+																									// name/id
+			// Check if the given scope already contains a variable by the given name/id
+			if (exists) {
+				System.out.println("DECLARATION ERROR " + ctx.getChild(1).getText());
+			} else {
+				this.st.get(this.scopeStack.peek()).insert(this.scopeStack.peek(),
+						new EntryObj(ctx.getChild(1).getText(), ctx.getChild(0).getText(), ctx.getChild(3).getText()));
+			}
+		} else {
+			System.out.println("Error, there was a string declaration that was not complete.");
+		}
 	}
 
 	/**

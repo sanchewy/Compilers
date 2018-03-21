@@ -1,5 +1,6 @@
 //Object to contain an entry in the symbol table (implemented with a hash<String, EntryObj>)
 public class EntryObj {
+	String name;
 	String type;
 	String value;
 
@@ -7,7 +8,8 @@ public class EntryObj {
 
 	}
 
-	public EntryObj(String t, String v) {
+	public EntryObj(String n, String t, String v) {
+		this.name = n;
 		this.type = t;
 		this.value = v;
 	}
@@ -15,6 +17,9 @@ public class EntryObj {
 	@Override
 	public String toString() {
 		String s = "";
+		if (this.name != null && !this.type.isEmpty()) {
+			s += "name " + this.name;
+		}
 		if (this.type != null && !this.type.isEmpty()) {
 			s += " type " + this.type;
 		}
