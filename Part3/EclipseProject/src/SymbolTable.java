@@ -33,6 +33,8 @@ public class SymbolTable {
 	// Print the symbol table to console
 	public void prettyPrint() {
 		System.out.println("Symbol table " + tableName);
+		// According to the javadoc, LinkedHashMap.entrySet() should be in the order
+		// that the elements were inserted initially.
 		Iterator it = st.entrySet().iterator();
 		while (it.hasNext()) {
 			Map.Entry pair = (Map.Entry) it.next();
