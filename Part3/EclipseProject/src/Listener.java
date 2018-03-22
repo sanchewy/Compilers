@@ -9,6 +9,7 @@ import java.util.Stack;
 
 public class Listener extends LittleBaseListener {
 
+	public static int Blockdepth = 1;
 	// A hash map of the form <Key=scope name, value=symbol table> used to contain
 	// all the sub-symbol tables
 	LinkedHashMap<String, SymbolTable> st = new LinkedHashMap<String, SymbolTable>();
@@ -18,6 +19,7 @@ public class Listener extends LittleBaseListener {
 
 	// Empty constructor, initialization of hashmap 'st' starts with 'enterProgram'
 	// GLOBAL scope.
+
 	public Listener() {
 
 	}
@@ -204,14 +206,15 @@ public class Listener extends LittleBaseListener {
 	 */
 	@Override
 	public void enterVar_decl(LittleParser.Var_declContext ctx) {
-		// There can be a list of variable names in a declaration, so we need to check them all.
+		// There can be a list of variable names in a declaration, so we need to check
+		// them all.
 		String[] children = ctx.getChild(1).getText().split(",");
-		for(String c : children) {
-			c = c.replace(";","");
+		for (String c : children) {
+			c = c.replace(";", "");
 			boolean exists = this.st.get(this.scopeStack.peek()).lookup(c);
 			// Error out if the child exists in the given scope.
-			if(exists) {
-				System.out.println("DECLARATION  ERROR  " + c);
+			if (exists) {
+				System.out.println("DECLARATION ERROR " + c);
 			} else {
 				this.st.get(this.scopeStack.peek()).insert(c, new EntryObj(c, ctx.getChild(0).getText()));
 			}
@@ -348,6 +351,13 @@ public class Listener extends LittleBaseListener {
 	 */
 	@Override
 	public void enterParam_decl(LittleParser.Param_declContext ctx) {
+		String c = ctx.getChild(1).getText();
+		boolean exists = this.st.get(this.scopeStack.peek()).lookup(c);
+		if (exists) {
+			System.out.println("DECLARATION  ERROR  " + c);
+		} else {
+			this.st.get(this.scopeStack.peek()).insert(c, new EntryObj(c, ctx.getChild(0).getText()));
+		}
 	}
 
 	/**
@@ -391,7 +401,8 @@ public class Listener extends LittleBaseListener {
 	 * </p>
 	 */
 	@Override
-	public void enterFunc_declarations(LittleParser.Func_declarationsContext ctx) { }
+	public void enterFunc_declarations(LittleParser.Func_declarationsContext ctx) {
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -426,26 +437,35 @@ public class Listener extends LittleBaseListener {
 	public void exitFunc_decl(LittleParser.Func_declContext ctx) {
 		this.scopeStack.pop();
 	}
-	
-	@Override public void enterFunc_name(LittleParser.Func_nameContext ctx) { 
-//		for(int i = 0; i < ctx.getChildCount(); i++) {
-//			System.out.println("Child " + i + " " + ctx.getChild(i).getText());
-//		}
+
+	@Override
+	public void enterFunc_name(LittleParser.Func_nameContext ctx) {
+		// for(int i = 0; i < ctx.getChildCount(); i++) {
+		// System.out.println("Child " + i + " " + ctx.getChild(i).getText());
+		// }
 		// Add a new symbol table to the hash of hashes
 		this.st.put(ctx.getChild(0).getText(), new SymbolTable(ctx.getChild(0).getText()));
 		// Push the new scope name onto the scope tracker stack
 		this.scopeStack.push(ctx.getChild(0).getText());
 	}
+
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>The default implementation does nothing.</p>
+	 * <p>
+	 * The default implementation does nothing.
+	 * </p>
 	 */
-	@Override public void exitFunc_name(LittleParser.Func_nameContext ctx) { }
+	@Override
+	public void exitFunc_name(LittleParser.Func_nameContext ctx) {
+	}
+
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>The default implementation does nothing.</p>
+	 * <p>
+	 * The default implementation does nothing.
+	 * </p>
 	 */
 
 	/**
@@ -853,6 +873,10 @@ public class Listener extends LittleBaseListener {
 	 */
 	@Override
 	public void enterIf_stmt(LittleParser.If_stmtContext ctx) {
+		String block = "BLOCK " + Integer.toString(Blockdepth);
+		this.st.put(block, new SymbolTable(block));
+		this.scopeStack.push(block);
+		Blockdepth++;
 	}
 
 	/**
@@ -864,6 +888,8 @@ public class Listener extends LittleBaseListener {
 	 */
 	@Override
 	public void exitIf_stmt(LittleParser.If_stmtContext ctx) {
+		this.scopeStack.pop();
+
 	}
 
 	/**
@@ -875,6 +901,15 @@ public class Listener extends LittleBaseListener {
 	 */
 	@Override
 	public void enterElse_part(LittleParser.Else_partContext ctx) {
+		if (ctx.getChildCount() > 0) {
+			String block = "BLOCK " + Integer.toString(Blockdepth);
+			this.st.put(block, new SymbolTable(block));
+			this.scopeStack.push(block);
+			Blockdepth++;
+		} else {
+
+		}
+
 	}
 
 	/**
@@ -886,6 +921,10 @@ public class Listener extends LittleBaseListener {
 	 */
 	@Override
 	public void exitElse_part(LittleParser.Else_partContext ctx) {
+		if (ctx.getChildCount() > 0) {
+			this.scopeStack.pop();
+		}
+
 	}
 
 	/**
@@ -919,6 +958,11 @@ public class Listener extends LittleBaseListener {
 	 */
 	@Override
 	public void enterWhile_stmt(LittleParser.While_stmtContext ctx) {
+		String block = "BLOCK " + Integer.toString(Blockdepth);
+		this.st.put(block, new SymbolTable(block));
+		this.scopeStack.push(block);
+		Blockdepth++;
+
 	}
 
 	/**
@@ -930,6 +974,8 @@ public class Listener extends LittleBaseListener {
 	 */
 	@Override
 	public void exitWhile_stmt(LittleParser.While_stmtContext ctx) {
+		this.scopeStack.pop();
+
 	}
 
 	/**
