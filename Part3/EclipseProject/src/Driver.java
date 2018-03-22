@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.LinkedHashMap;
 import java.lang.reflect.Method;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 
 // import LittleParser.java;
 // import LittleBaseListner.java;
@@ -44,18 +45,22 @@ public class Driver {
 			// else {
 			// System.out.println("Not accepted");
 			// }
-			Listener listener = new Listener();
-			ParseTreeWalker walker = new ParseTreeWalker();
-			walker.walk(listener, parser.program());
-			// This returns the hash of hashes <String scopeName, <String scopeName,
-			// EntryObj>>
-			LinkedHashMap map = (LinkedHashMap) listener.getSymbolTable();
-			Iterator it = map.entrySet().iterator();
-			while (it.hasNext()) {
-				Map.Entry pair = (Map.Entry) it.next();
-				SymbolTable st = (SymbolTable) pair.getValue();
-				st.prettyPrint();
-				it.remove();
+			try {
+	 			Listener listener = new Listener();
+    			ParseTreeWalker walker = new ParseTreeWalker();
+    			walker.walk(listener, parser.program());
+    			// This returns the hash of hashes <String scopeName, <String scopeName,
+    			// EntryObj>>
+				LinkedHashMap map = (LinkedHashMap) listener.getSymbolTable();
+				Iterator it = map.entrySet().iterator();
+				while (it.hasNext()) {
+					Map.Entry pair = (Map.Entry) it.next();
+					SymbolTable st = (SymbolTable) pair.getValue();
+					st.prettyPrint();
+					it.remove();
+				}
+			}catch (ParseCancellationException e) {
+					System.out.println(e);
 			}
 		} catch (Exception e) {
 			System.out.println("Error in execution: " + e.toString());

@@ -1,6 +1,7 @@
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 
 import java.util.LinkedHashMap;
 import java.util.Iterator;
@@ -147,14 +148,14 @@ public class Listener extends LittleBaseListener {
 	 * </p>
 	 */
 	@Override
-	public void enterString_decl(LittleParser.String_declContext ctx) {
+	public void enterString_decl(LittleParser.String_declContext ctx) throws ParseCancellationException {
 		// Insert a new Symbol into the current scope's symbol table
 		if (ctx.getChildCount() != 4) { // Full declaration, should be the only possibility
 			boolean exists = this.st.get(this.scopeStack.peek()).lookup(ctx.getChild(1).getText()); // Child(1) = string
 																									// name/id
 			// Check if the given scope already contains a variable by the given name/id
 			if (exists) {
-				System.out.println("DECLARATION ERROR " + ctx.getChild(1).getText());
+				throw new ParseCancellationException("DECLARATION ERROR " + ctx.getChild(1).getText());
 			} else {
 				this.st.get(this.scopeStack.peek()).insert(ctx.getChild(1).getText(),
 						new EntryObj(ctx.getChild(1).getText(), ctx.getChild(0).getText(), ctx.getChild(3).getText()));
@@ -205,7 +206,7 @@ public class Listener extends LittleBaseListener {
 	 * </p>
 	 */
 	@Override
-	public void enterVar_decl(LittleParser.Var_declContext ctx) {
+	public void enterVar_decl(LittleParser.Var_declContext ctx) throws ParseCancellationException{
 		// There can be a list of variable names in a declaration, so we need to check
 		// them all.
 		String[] children = ctx.getChild(1).getText().split(",");
@@ -214,7 +215,7 @@ public class Listener extends LittleBaseListener {
 			boolean exists = this.st.get(this.scopeStack.peek()).lookup(c);
 			// Error out if the child exists in the given scope.
 			if (exists) {
-				System.out.println("DECLARATION ERROR " + c);
+				throw new ParseCancellationException("DECLARATION ERROR " + c);
 			} else {
 				this.st.get(this.scopeStack.peek()).insert(c, new EntryObj(c, ctx.getChild(0).getText()));
 			}
