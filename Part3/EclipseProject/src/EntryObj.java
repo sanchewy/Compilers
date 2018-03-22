@@ -13,6 +13,11 @@ public class EntryObj {
 		this.type = t;
 		this.value = v;
 	}
+	
+	public EntryObj(String n, String t) {
+		this.name = n;
+		this.type = t;
+	}
 
 	@Override
 	public String toString() {

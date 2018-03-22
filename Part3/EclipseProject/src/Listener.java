@@ -154,7 +154,7 @@ public class Listener extends LittleBaseListener {
 			if (exists) {
 				System.out.println("DECLARATION ERROR " + ctx.getChild(1).getText());
 			} else {
-				this.st.get(this.scopeStack.peek()).insert(this.scopeStack.peek(),
+				this.st.get(this.scopeStack.peek()).insert(ctx.getChild(1).getText(),
 						new EntryObj(ctx.getChild(1).getText(), ctx.getChild(0).getText(), ctx.getChild(3).getText()));
 			}
 		} else {
@@ -204,6 +204,18 @@ public class Listener extends LittleBaseListener {
 	 */
 	@Override
 	public void enterVar_decl(LittleParser.Var_declContext ctx) {
+		// There can be a list of variable names in a declaration, so we need to check them all.
+		String[] children = ctx.getChild(1).getText().split(",");
+		for(String c : children) {
+			c = c.replace(";","");
+			boolean exists = this.st.get(this.scopeStack.peek()).lookup(c);
+			// Error out if the child exists in the given scope.
+			if(exists) {
+				System.out.println("DECLARATION  ERROR  " + c);
+			} else {
+				this.st.get(this.scopeStack.peek()).insert(c, new EntryObj(c, ctx.getChild(0).getText()));
+			}
+		}
 	}
 
 	/**
@@ -412,6 +424,7 @@ public class Listener extends LittleBaseListener {
 	 */
 	@Override
 	public void exitFunc_decl(LittleParser.Func_declContext ctx) {
+		this.scopeStack.pop();
 	}
 	
 	@Override public void enterFunc_name(LittleParser.Func_nameContext ctx) { 
