@@ -60,7 +60,7 @@ public class Driver {
 					it.remove();
 				}
 			}catch (ParseCancellationException e) {
-					System.out.println(e);
+					System.out.println(e.getMessage());
 			}
 		} catch (Exception e) {
 			System.out.println("Error in execution: " + e.toString());
