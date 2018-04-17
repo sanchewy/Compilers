@@ -1,5 +1,6 @@
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
+import org.antlr.v4.runtime.RuleContext.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -45,6 +46,7 @@ public class Driver {
 			// else {
 			// System.out.println("Not accepted");
 			// }
+			
 			try {
 	 			Listener listener = new Listener();
     			ParseTreeWalker walker = new ParseTreeWalker();
@@ -52,16 +54,25 @@ public class Driver {
     			// This returns the hash of hashes <String scopeName, <String scopeName,
     			// EntryObj>>
 				LinkedHashMap map = (LinkedHashMap) listener.getSymbolTable();
-				Iterator it = map.entrySet().iterator();
-				while (it.hasNext()) {
-					Map.Entry pair = (Map.Entry) it.next();
-					SymbolTable st = (SymbolTable) pair.getValue();
-					st.prettyPrint();
-					it.remove();
-				}
+				ASTNode ast = listener.getAST();
+				ast.prettyPrint();
+//				Iterator it = map.entrySet().iterator();
+//				while (it.hasNext()) {
+//					Map.Entry pair = (Map.Entry) it.next();
+//					SymbolTable st = (SymbolTable) pair.getValue();
+//					st.prettyPrint();
+//					it.remove();
+//				}
 			}catch (ParseCancellationException e) {
 					System.out.println(e.getMessage());
-			}
+			} 
+// 			try {
+// 			    LittleParser.ProgramContext cst = parser.program();
+// 			    AstNode ast = new BuildAstVisitor().visitProgram(cst);
+// 			    System.out.println(ast.name);
+// 			} catch (Exception e) {
+// 			    System.out.println("oh no " + e.toString());
+// 			}
 		} catch (Exception e) {
 			System.out.println("Error in execution: " + e.toString());
 		}

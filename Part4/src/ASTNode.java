@@ -6,19 +6,26 @@ public class ASTNode<T> {
 	String callBackName; // This represents the grammar production / rule that created this node
 	ArrayList<ASTNode> childrenList = new ArrayList<ASTNode>();
 	ASTNode parent;
-	T data;
+	String data;
 
-	public ASTNode(String cbn, T data) {
+	public ASTNode(String cbn, String data) {
 		this.callBackName = cbn;
 		this.data = data;
 	}
 	
 	public void addChild(ASTNode child) {
-	    this.childrenList.append(child);
+	    this.childrenList.add(child);
 	}
 	
 	public void setParent(ASTNode parent) {
 	    this.parent = parent;
+	}
+	
+	public void prettyPrint() {
+		for(ASTNode n: childrenList) {
+			n.prettyPrint();
+		}
+		System.out.println("CallBackName: "+callBackName+" Data: "+data.toString());
 	}
 
 }
