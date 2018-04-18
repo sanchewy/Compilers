@@ -22,10 +22,15 @@ public class ASTNode<T> {
 	}
 	
 	public void prettyPrint() {
+		System.out.println(";CallBackName: "+callBackName+" Data: "+data.toString());
 		for(ASTNode n: childrenList) {
+			System.out.print(callBackName+" child: ");
 			n.prettyPrint();
 		}
-		System.out.println("CallBackName: "+callBackName+" Data: "+data.toString());
+	}
+	
+	public void print() {
+	    System.out.println(";CallBackName: "+callBackName+" Data: "+data.toString());
 	}
 
 }

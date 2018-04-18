@@ -55,16 +55,17 @@ public class Listener extends LittleBaseListener {
 	public void exitProgram(LittleParser.ProgramContext ctx) {
 		this.scopeStack.pop();
 		try {
-			ASTNode pgm_bdy = this.nodeStack.pop();
+            ASTNode pgm_bdy = this.nodeStack.pop();
 			ASTNode id = this.nodeStack.pop(); // We actually don't need this, but it will be on the stack anyway.
 			if (!pgm_bdy.callBackName.equals("pgm_bdy") || !id.callBackName.equals("id")) {
-				System.out.println(
-						"Error: In exit program, the 2 nodes on top of stack didn't match the pattern (id, pgm_bdy).");
+				System.out.println(";Error: In exit program, the 2 nodes on top of stack didn't match the pattern (id, pgm_bdy).");
 			} else {
 				pgm_bdy.callBackName = "program";
 				this.finalAST = pgm_bdy;
-				if (!this.nodeStack.empty()) {
-					System.out.println("Error: on exit pogram the nodeStack in Listener.java was not empty.");
+				while (!this.nodeStack.empty()) {
+					System.out.println(";Error: on exit pogram the nodeStack in Listener.java was not empty.");
+	                System.out.println(";   ");
+	                this.nodeStack.pop().print();
 				}
 			}
 		} catch (EmptyStackException e) {
@@ -155,6 +156,7 @@ public class Listener extends LittleBaseListener {
 	 */
 	@Override
 	public void exitDecl(LittleParser.DeclContext ctx) {
+	  
 	}
 
 	/**
@@ -214,6 +216,12 @@ public class Listener extends LittleBaseListener {
 	@Override
 	public void exitString_decl(LittleParser.String_declContext ctx) {
 		// System.out.println("Exit String declare"+ctx.getText());
+		// string_decl : STRING id ASSIGNOP str SEMICOLON; 
+		// This code only exists to remove an 'id' from the stack
+		ASTNode id = this.nodeStack.pop();     // Pop and discard
+		if (!id.callBackName.equals("id")) {
+		    System.out.println("Error: exit string_decl top of stack was not an 'id'");
+		}
 	}
 
 	/**
@@ -272,6 +280,12 @@ public class Listener extends LittleBaseListener {
 	@Override
 	public void exitVar_decl(LittleParser.Var_declContext ctx) {
 		// System.out.println("Exit var declare"+ctx.getText());
+		// var_decl : var_type id_list;
+		// This code only exists to remove an 'id_list' from the stack
+		ASTNode id_list = this.nodeStack.pop();     // Pop and discard
+		if (!id_list.callBackName.equals("id_list")) {
+		    System.out.println("Error: exit var_decl top of stack was not an 'id_list'");
+		}
 	}
 
 	/**
@@ -489,19 +503,21 @@ public class Listener extends LittleBaseListener {
 	public void exitFunc_declarations(LittleParser.Func_declarationsContext ctx) {
 		// We will not have return types, or param_decl_list
 		// func_declarations : func_decl func_declarations | ;
-		int numChildren = ctx.getChildCount();
-		if (numChildren == 0) { // empty func_declarations
+		if (ctx.getChildCount() == 0) { // empty func_declarations
 			ASTNode empty_func_declarations = new ASTNode("func_declarations", "lambda");
 			this.nodeStack.push(empty_func_declarations);
-		} else if (numChildren == 1) { // func_decl
+		} else if (ctx.getChildCount() == 2 && ctx.getChild(1).getText().equals("")) { // func_decl
 			ASTNode empty_func_delcarations = this.nodeStack.pop(); // Pop and discard
-			if (!empty_func_delcarations.data.equals("lambda")) {
-				System.out.println(
-						"Error: On exit_func_declarations with 1 ctx child, the top of stack was not a lambda func_declarations.");
+			if (!empty_func_delcarations.data.equals("lambda") || !empty_func_delcarations.callBackName.equals("func_declarations")) {
+				System.out.println("Error: On exit_func_declarations with 1 ctx child, the top of stack was not a lambda func_declarations.");
 			}
 			ASTNode func_decl = this.nodeStack.peek();
-			func_decl.callBackName = "func_declarations";
-		} else if (numChildren == 2) { // func_decl func_declarations
+			if (!empty_func_delcarations.callBackName.equals("func_decl")) {
+			    func_decl.callBackName = "func_declarations";
+			} else {
+			    System.out.println("Error: stack peek for func_declarations was not of type 'func_decl'");
+			}
+		} else if (ctx.getChildCount() == 2 && !ctx.getChild(1).getText().equals("")) { // func_decl func_declarations
 			ASTNode func_declarations = this.nodeStack.pop();
 			ArrayList<ASTNode> oldList = func_declarations.childrenList;
 			ASTNode func_decl = this.nodeStack.pop();
@@ -513,6 +529,7 @@ public class Listener extends LittleBaseListener {
 				beginning.add(n);
 			}
 			func_declarations.childrenList = beginning;
+			func_declarations.callBackName = "func_declarations";
 			this.nodeStack.push(func_declarations);
 		} else {
 			System.out.println("Error: exit func_declarations didn't have 0, 1, or 2 children.");
@@ -714,6 +731,7 @@ public class Listener extends LittleBaseListener {
 	public void exitStmt(LittleParser.StmtContext ctx) {
 		// System.out.println("Exit statement"+ctx.getText());
 		// stmt : base_stmt | if_stmt | while_stmt;
+		// System.out.println(";exit statement " + this.nodeStack.peek().callBackName);
 		if (this.nodeStack.peek().callBackName.equals("base_stmt")) {
 			this.nodeStack.peek().callBackName = "stmt";
 		} else if (this.nodeStack.peek().callBackName.equals("if_stmt")) {
@@ -814,17 +832,18 @@ public class Listener extends LittleBaseListener {
 	public void exitAssign_expr(LittleParser.Assign_exprContext ctx) {
 		// System.out.println("Exit assign expression"+ctx.getText());
 		// assign_expr : id ASSIGNOP expr;
-		ASTNode expr;
-		ASTNode id;
-		if (this.nodeStack.peek().callBackName.equals("expr") && this.nodeStack.peek().callBackName.equals("id")) {
-			expr = this.nodeStack.pop();
-			id = this.nodeStack.pop();
+		ASTNode expr = this.nodeStack.pop();
+		ASTNode id = this.nodeStack.pop();
+		//System.out.println(";the expression is "+ expr.callBackName+ " and the id is "+id.callBackName);
+		if (expr.callBackName.equals("expr") && id.callBackName.equals("id")) {
+
 			ASTNode assignop = new ASTNode("assign_expr", ":=");
 			assignop.addChild(id);
 			assignop.addChild(expr);
 			this.nodeStack.push(assignop);
+
 		} else {
-			System.out.println("Error: in assign_expr the nodeStack.pop.callBackName wasn't expr or id");
+			System.out.println(";Error: in assign_expr the nodeStack.pop.callBackName wasn't expr or id");
 		}
 	}
 
@@ -938,7 +957,7 @@ public class Listener extends LittleBaseListener {
 		// System.out.println("Exit Expression Context: "+ctx.getText());
 		// expr : expr_prefix factor;
 		int numChildren = ctx.getChildCount();
-		if (numChildren == 1) { // factor
+		if (ctx.getChild(0).getText().equals("")) { // factor
 			ASTNode factor = this.nodeStack.pop();
 			ASTNode empty_expr_prefix = this.nodeStack.pop(); // Pop and discard lambda node
 			if (!empty_expr_prefix.data.equals("lambda")) {
@@ -947,7 +966,7 @@ public class Listener extends LittleBaseListener {
 			}
 			factor.callBackName = "expr";
 			this.nodeStack.push(factor);
-		} else if (numChildren == 2) { // expr_prefix factor
+		} else if (!ctx.getChild(0).getText().equals("")) { // expr_prefix factor
 			ASTNode factor = this.nodeStack.pop();
 			ASTNode expr_prefix = this.nodeStack.pop();
 			expr_prefix.addChild(factor); // (expr_prefix) ADDOP (factor)
@@ -985,17 +1004,17 @@ public class Listener extends LittleBaseListener {
 			// Lambda node keeps stack straight when popping for other subtrees.
 			ASTNode<String> emptyNode = new ASTNode<String>("expr_prefix", "lambda");
 			this.nodeStack.push(emptyNode);
-		} else if (numChildren == 2) { // factor ADDOP
+		} else if (ctx.getChild(0).getText().equals("")) { // factor ADDOP
 			ASTNode factor = this.nodeStack.pop();
 			ASTNode empty_expr_prefix = this.nodeStack.pop();
-			ASTNode ADDOP = new ASTNode("expr_prefix", "addop");
+			ASTNode ADDOP = new ASTNode("expr_prefix", ctx.getChild(2).getText());
 			ADDOP.addChild(factor);
 			this.nodeStack.push(ADDOP);
-		} else if (numChildren == 3) { // expr_prefix factor ADDOP
+		} else if (!ctx.getChild(0).getText().equals("")) { // expr_prefix factor ADDOP
 			ASTNode factor = this.nodeStack.pop();
 			ASTNode expr_prefix = this.nodeStack.pop();
 			expr_prefix.addChild(factor); // expr_prefix's right child must be the new factor
-			ASTNode ADDOP = new ASTNode("expr_prefix", "mulop");
+			ASTNode ADDOP = new ASTNode("expr_prefix", ctx.getChild(2).getText());
 			ADDOP.addChild(expr_prefix);
 			this.nodeStack.push(ADDOP);
 		} else {
@@ -1026,18 +1045,23 @@ public class Listener extends LittleBaseListener {
 		// System.out.println("Exit factor "+ctx.getText());
 		// factor : factor_prefix postfix_expr;
 		int numChildren = ctx.getChildCount();
-		if (numChildren == 1) { // postfix_expr
+		if (ctx.getChild(0).getText().equals("")) { // postfix_expr
 			ASTNode postfix_expr = this.nodeStack.pop();
 			ASTNode empty_factor_prefix = this.nodeStack.pop(); // Pop and discard lambda node
+			if (!postfix_expr.callBackName.equals("postfix_expr")) {
+			    System.out.println("Error: exit factor stack pop was not 'postfix_expr'.");   
+			}
 			if (!empty_factor_prefix.data.equals("lambda")) {
-				System.out.println(
-						"Error: On exit_factor there was 1 ctx child, but top of stack was not lambda factor_prefix.");
+				System.out.println("Error: On exit_factor there was 1 ctx child, but top of stack was not lambda factor_prefix.");
 			}
 			postfix_expr.callBackName = "factor";
 			this.nodeStack.push(postfix_expr);
-		} else if (numChildren == 2) { // factor_prefix postfix_expr
+		} else if (!ctx.getChild(0).getText().equals("")) { // factor_prefix postfix_expr
 			ASTNode postfix = this.nodeStack.pop();
 			ASTNode factor_prefix = this.nodeStack.pop();
+			if (!postfix.callBackName.equals("postfix_expr") || !factor_prefix.callBackName.equals("factor_prefix")) {
+			    System.out.println("Error: exit factor stack pop was not 'postfix_expr' or 'factor_prefix'.");
+			}
 			factor_prefix.addChild(postfix); // (postfix_expr) MULOP (factor_prefix)
 			factor_prefix.callBackName = "factor";
 			this.nodeStack.push(factor_prefix);
@@ -1072,17 +1096,17 @@ public class Listener extends LittleBaseListener {
 			// Lambda node keeps stack straight when popping for other subtrees.
 			ASTNode<String> emptyNode = new ASTNode<String>("factor_prefix", "lambda");
 			this.nodeStack.push(emptyNode);
-		} else if (numChildren == 2) { // postfix_expr, MULOP
+		} else if (ctx.getChild(0).getText().equals("")) { // postfix_expr, MULOP
 			ASTNode postfix = this.nodeStack.pop();
 			ASTNode empty_factor_prefix = this.nodeStack.pop();
-			ASTNode MULOP = new ASTNode("factor_prefix", "mulop");
+			ASTNode MULOP = new ASTNode("factor_prefix", ctx.getChild(2).getText());
 			MULOP.addChild(postfix);
 			this.nodeStack.push(MULOP);
-		} else if (numChildren == 3) { // factor_prefix, postfix_expr, MULOP
+		} else if (!ctx.getChild(0).getText().equals("")) { // factor_prefix, postfix_expr, MULOP
 			ASTNode postfix = this.nodeStack.pop();
 			ASTNode factor_prefix = this.nodeStack.pop();
 			factor_prefix.addChild(postfix); // factor_prefix's right child
-			ASTNode MULOP = new ASTNode("factor_prefix", "mulop");
+			ASTNode MULOP = new ASTNode("factor_prefix", ctx.getChild(2).getText());
 			MULOP.addChild(factor_prefix);
 			this.nodeStack.push(MULOP);
 		} else {
