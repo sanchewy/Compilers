@@ -94,10 +94,20 @@ public class Listener extends LittleBaseListener {
 	@Override
 	public void exitId(LittleParser.IdContext ctx) {
 		// System.out.println("Exit ID"+ctx.getText());
-		// exitId should only ever have 2 children (id ;)
+		// exitId should only ever have 1 child (id)
 		try {
-			ASTNode<String> newId = new ASTNode<String>("id", ctx.getChild(0).getText()); // Create new id node
-			this.nodeStack.push(newId);
+			EntryObj idPointer = this.st.get(this.scopeStack.peek()).st.get(ctx.getChild(0).getText());
+			if (idPointer == null) {
+			    idPointer = this.st.get("GLOBAL").st.get(ctx.getChild(0).getText());
+			}
+			if (idPointer != null) {
+				ASTNode<String> newId = new ASTNode<String>("id", idPointer.type+" "+ctx.getChild(0).getText()); // Create new id node
+			    newId.idPointer = idPointer;
+    			this.nodeStack.push(newId);
+			} else {
+    			ASTNode<String> newId = new ASTNode<String>("id", ctx.getChild(0).getText()); // Create new id node
+				this.nodeStack.push(newId);
+			}
 		} catch (EmptyStackException e) {
 			System.out.println("Error: Stack was empty id.");
 		}
@@ -1255,8 +1265,13 @@ public class Listener extends LittleBaseListener {
 			} else { // Otherwise, it is a float literal or an intliteral
 				try {
 					// Create new primary node
-					ASTNode<String> newPrimary = new ASTNode<String>("primary", ctx.getChild(0).getText());
-					this.nodeStack.push(newPrimary);
+					if (ctx.getChild(0).getText().contains(".")) {      // IS a float
+					    ASTNode<String> newPrimary = new ASTNode<String>("primary", "FLOAT "+ctx.getChild(0).getText());
+    					this.nodeStack.push(newPrimary);
+					} else {        // IS  an int
+					    ASTNode<String> newPrimary = new ASTNode<String>("primary", "INT "+ctx.getChild(0).getText());
+    					this.nodeStack.push(newPrimary);
+					}
 				} catch (EmptyStackException e) {
 					System.out.println("Error: Stack was empty primary.");
 				}

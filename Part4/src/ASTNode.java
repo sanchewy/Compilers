@@ -7,6 +7,7 @@ public class ASTNode<T> {
 	ArrayList<ASTNode> childrenList = new ArrayList<ASTNode>();
 	ASTNode parent;
 	String data;
+	EntryObj idPointer;
 
 	public ASTNode(String cbn, String data) {
 		this.callBackName = cbn;
@@ -27,6 +28,7 @@ public class ASTNode<T> {
 			System.out.print(callBackName+" child: ");
 			n.prettyPrint();
 		}
+	    
 	}
 	
 	public void print() {
