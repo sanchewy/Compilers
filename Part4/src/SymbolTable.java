@@ -1,6 +1,9 @@
 import java.util.LinkedHashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
+
 
 //I think this can be linear or a hash table, but Kihanda said that it should be a hash table...
 //The symbol table keeps track of variable and function/procedure names and
@@ -44,4 +47,19 @@ public class SymbolTable {
 		// Print blank line at end of symbol table.
 		System.out.println();
 	}
+		public Set getvals() {
+		//System.out.println("Symbol table " + tableName);
+		// According to the javadoc, LinkedHashMap.entrySet() should be in the order
+		// that the elements were inserted initially.
+		Set <String> vals = new HashSet<String>();
+		Iterator it = st.entrySet().iterator();
+		while (it.hasNext()) {
+			Map.Entry pair = (Map.Entry) it.next();
+			vals.add(pair.getValue().toString());
+			it.remove();
+		}
+		// Print blank line at end of symbol table.
+		return vals;
+	}
+
 }
